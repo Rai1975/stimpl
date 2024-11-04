@@ -130,16 +130,58 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             return (result, left_type, new_state)
 
         case Subtract(left=left, right=right):
-            """ TODO: Implement. """
-            pass
+            result = 0
+            leftResult, leftType, newState = evaluate(left, state)
+            rightResult, rightType, newState = evaluate(right, newState)
+
+            if leftType != rightType:
+                raise InterpTypeError(f"""Mismatched types for Subtract:
+                                      Cannot subtract {leftType} from {rightType}""")
+
+            match leftType:
+                case Integer() | FloatingPoint():
+                    result = leftResult - rightResult
+                case _:
+                    raise InterpTypeError(f"""Cannot Subtract {leftType}s""")
+
+            return (result, leftType, newState)
 
         case Multiply(left=left, right=right):
-            """ TODO: Implement. """
-            pass
+            result = 0
+            leftResult, leftType, newState = evaluate(left, state)
+            rightResult, rightType, newState = evaluate(right, newState)
+
+            if leftType != rightType:
+                raise InterpTypeError(f"""Mismatched types for Multiply:
+                                      Cannot multiply {leftType}s and {rightType}s""")
+
+            match leftType:
+                case Integer() | FloatingPoint():
+                    result = leftResult * rightResult
+                case _:
+                    raise InterpTypeError(f"""Cannot Multiply {leftType}s""")
+
+            return (result, leftType, newState)
 
         case Divide(left=left, right=right):
-            """ TODO: Implement. """
-            pass
+            result = 0
+            leftResult, leftType, newState = evaluate(left, state)
+            rightResult, rightType, newState = evaluate(right, newState)
+
+            if leftType != rightType:
+                raise InterpTypeError(f"""Mismatched types for Divide:
+                                      Cannot multiply {leftType}s and {rightType}s""")
+
+            if int(rightResult) == 0:
+                raise ZeroDivisionError(f"""Cannot Divide by Zero""")
+
+            match leftType:
+                case Integer() | FloatingPoint():
+                    result = leftResult / rightResult
+                case _:
+                    raise InterpTypeError(f"Cannot Divide {leftType}s")
+
+            return (result, leftType, newState)
 
         case And(left=left, right=right):
             left_value, left_type, new_state = evaluate(left, state)
@@ -158,16 +200,45 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             return (result, left_type, new_state)
 
         case Or(left=left, right=right):
-            """ TODO: Implement. """
-            pass
+            leftResult, leftType, newState = evaluate(left, state)
+            rightResult, rightType, newState = evaluate(right, newState)
+
+            if leftType != rightType:
+                raise InterpTypeError(f"""Mismatched types for Or:
+            Cannot evaluate {leftType} and {rightType}""")
+            match leftType:
+                case Boolean():
+                    result = leftResult or rightResult
+                case _:
+                    raise InterpTypeError("Cannot perform logical or on non-boolean operands.")
+
+            return (result, leftType, newState)
 
         case Not(expr=expr):
-            """ TODO: Implement. """
-            pass
+            exprResult, exprType, newState = evaluate(expr, state)
+
+            match exprType:
+                case Boolean():
+                   result = not(exprResult)
+                case _:
+                   raise InterpTypeError("Cannot perform logical not on non-boolean operand.")
+
+            return (result, exprType, newState)
 
         case If(condition=condition, true=true, false=false):
-            """ TODO: Implement. """
-            pass
+            condResult, condType, newState = evaluate(condition, state)
+
+            match condType:
+                case Boolean():
+                    tempRes = condResult == true
+                    if tempRes:
+                        result, resultType, newState = evaluate(true, newState)
+                    else:
+                        result, resultType, newState = evaluate(false, newState)
+                case _:
+                    raise InterpTypeError("Cannot perform If conditional on non-boolean condition")
+
+            return (result, resultType, newState)
 
         case Lt(left=left, right=right):
             left_value, left_type, new_state = evaluate(left, state)
