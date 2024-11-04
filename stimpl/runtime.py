@@ -23,7 +23,13 @@ class State(object):
         return State(variable_name, variable_value, variable_type, self)
 
     def get_value(self, variable_name) -> Any:
-        """ TODO: Implement. """
+        currState = self
+        while currState is not None:
+            if currState.variable_name == variable_name:
+                return currState.value[0]
+            else:
+                currState = currState.next_state
+
         return None
 
     def __repr__(self) -> str:
