@@ -183,7 +183,9 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 raise InterpMathError(f"""Cannot Divide by Zero""")
 
             match leftType:
-                case Integer() | FloatingPoint():
+                case Integer():
+                    result = leftResult // rightResult
+                case FloatingPoint():
                     result = leftResult / rightResult
                 case _:
                     raise InterpTypeError(f"Cannot Divide {leftType}s")
@@ -282,7 +284,11 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 case Integer() | Boolean() | String() | FloatingPoint():
                     result = leftVal <= rightVal
                 case Unit():
-                    result = False  # Handle units properly!!!
+                    match rightType:
+                        case Unit():
+                            result = True
+                        case _:
+                            result = False
                 case _:
                     raise InterpTypeError(f"Cannot compare {leftType}s")
 
@@ -323,7 +329,11 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 case Integer() | Boolean() | String() | FloatingPoint():
                     result = leftVal >= rightVal
                 case Unit():
-                    result = False
+                    match rightType:
+                        case Unit():
+                            result = True
+                        case _:
+                            result = False
                 case _:
                     raise InterpTypeError(f"Cannot compare {leftType}s")
 
@@ -343,7 +353,11 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 case Integer() | Boolean() | String() | FloatingPoint():
                     result = (leftVal == rightVal)
                 case Unit():
-                    result = False
+                    match rightType:
+                        case Unit():
+                            result = True
+                        case _:
+                            result = False
                 case _:
                     raise InterpTypeError(f"Cannot compare {leftType}s")
 
@@ -363,7 +377,11 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 case Integer() | Boolean() | String() | FloatingPoint():
                     result = not (leftVal == rightVal)
                 case Unit():
-                    result = False
+                    match rightType:
+                        case Unit():
+                            result = False
+                        case _:
+                            result = True
                 case _:
                     raise InterpTypeError(f"Cannot compare {leftType}s")
 
@@ -373,14 +391,14 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             currState = state
 
             while True:
-                condResult, condType, newState = evaluate(condition, state)
+                condResult, condType, state = evaluate(condition, state)
 
                 match condType:
                     case Boolean():
                         if condResult:
-                            _, _, newState = evaluate(body, state)
+                            _, _, state = evaluate(body, state)
                         else:
-                            return None, Unit(), newState
+                            return None, Unit(), state
                     case _:
                         raise InterpTypeError(f"Cannot evaluate while loops for {condType}s")
 
