@@ -23,14 +23,14 @@ class State(object):
         return State(variable_name, variable_value, variable_type, self)
 
     def get_value(self, variable_name) -> Any:
-        currState = self
-        while not isinstance(currState, EmptyState):
-            if currState.variable_name == variable_name:
-                return currState.value
+        currState = self                                        # Storing current state of the program in 'currState'
+        while not isinstance(currState, EmptyState):            # Making sure we are not calling member variables of an empty state
+            if currState.variable_name == variable_name:        # Search for our variable in the current state
+                return currState.value                          # Found it! Return it's value and type
             else:
-                currState = currState.next_state
+                currState = currState.next_state                # Check the next state if it is not found in current state
 
-        return None
+        return None                                             # Return None if it isn't found in any state
 
     def __repr__(self) -> str:
         return f"{self.variable_name}: {self.value}, " + repr(self.next_state)
@@ -85,15 +85,14 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             return (printable_value, printable_type, new_state)
 
         case Sequence(exprs=exprs) | Program(exprs=exprs):
-            # Setting up default return
-            currState = state
+            currState = state                                               # Setting up default return, in case of empty sequence/program
             result = None
             resultType = Unit()
 
-            for expr in exprs:
+            for expr in exprs:                                              # Iterating through expressions in the sequence/program
                 result, resultType, currState = evaluate(expr, currState)
 
-            return (result, resultType, currState)
+            return (result, resultType, currState)                          # Return the result, type and state after evaluating all expressions
 
         case Variable(variable_name=variable_name):
             value = state.get_value(variable_name)
@@ -138,42 +137,42 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
         case Subtract(left=left, right=right):
             result = 0
-            leftResult, leftType, newState = evaluate(left, state)
-            rightResult, rightType, newState = evaluate(right, newState)
+            leftResult, leftType, newState = evaluate(left, state)          # Evaluating the left side of the minus
+            rightResult, rightType, newState = evaluate(right, newState)    # Evaluating the right side of the minus
 
-            if leftType != rightType:
+            if leftType != rightType:                                       # If the types are mismatched, throw an error
                 raise InterpTypeError(f"""Mismatched types for Subtract:
                                       Cannot subtract {leftType} from {rightType}""")
 
-            match leftType:
+            match leftType:                                                 # If the types match, evaluate them
                 case Integer() | FloatingPoint():
-                    result = leftResult - rightResult
-                case _:
+                    result = leftResult - rightResult                       # Subtract the left and right if they are both either integers or floating points
+                case _:                                                     # Raise an error in case type does not support subtraction
                     raise InterpTypeError(f"""Cannot Subtract {leftType}s""")
 
-            return (result, leftType, newState)
+            return (result, leftType, newState)                             # Return result of subtraction with it's type and the new state!
 
         case Multiply(left=left, right=right):
             result = 0
-            leftResult, leftType, newState = evaluate(left, state)
-            rightResult, rightType, newState = evaluate(right, newState)
+            leftResult, leftType, newState = evaluate(left, state)          # Evaluating the left side of the multiplication
+            rightResult, rightType, newState = evaluate(right, newState)    # Evaluating the right side of the multiplication
 
-            if leftType != rightType:
+            if leftType != rightType:                                       # Throw an error if the types don't match
                 raise InterpTypeError(f"""Mismatched types for Multiply:
                                       Cannot multiply {leftType}s and {rightType}s""")
 
-            match leftType:
+            match leftType:                                                 # If the types match, proceed to evaluating the result
                 case Integer() | FloatingPoint():
-                    result = leftResult * rightResult
-                case _:
+                    result = leftResult * rightResult                       # Multiply the left and right if they are both either Integers or Floating points
+                case _:                                                     # Otherwise, raise an error
                     raise InterpTypeError(f"""Cannot Multiply {leftType}s""")
 
-            return (result, leftType, newState)
+            return (result, leftType, newState)                             # Return result, it's type and new state
 
         case Divide(left=left, right=right):
             result = 0
-            leftResult, leftType, newState = evaluate(left, state)
-            rightResult, rightType, newState = evaluate(right, newState)
+            leftResult, leftType, newState = evaluate(left, state)          # Evaluate the left side of division
+            rightResult, rightType, newState = evaluate(right, newState)    # Evaluate the right side of division
 
             if leftType != rightType:
                 raise InterpTypeError(f"""Mismatched types for Divide:
