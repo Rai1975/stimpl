@@ -395,9 +395,9 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 match condType:
                     case Boolean():
                         if condResult:
-                            _, _, state = evaluate(body, state)
+                            condResult, condType, state = evaluate(body, state)
                         else:
-                            return None, Unit(), state
+                            return (condResult, condType, state)
                     case _:
                         raise InterpTypeError(f"Cannot evaluate while loops for {condType}s")
 
